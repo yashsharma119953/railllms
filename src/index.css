@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Indian Railways inspired - Deep Navy, Red, Gold */
+    --background: 210 20% 98%;
+    --foreground: 220 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 12%;
+
+    --primary: 220 60% 22%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 15% 93%;
+    --secondary-foreground: 220 30% 12%;
+
+    --muted: 210 15% 95%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 210 15% 93%;
+    --accent-foreground: 220 30% 12%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 220 60% 22%;
+
+    --radius: 0.5rem;
+
+    /* Custom tokens */
+    --railway-red: 0 78% 42%;
+    --railway-red-foreground: 0 0% 100%;
+    --railway-gold: 42 90% 50%;
+    --railway-gold-foreground: 220 30% 12%;
+    --railway-navy: 220 60% 22%;
+    --railway-navy-light: 220 40% 35%;
+    --railway-green: 142 60% 38%;
+    --railway-green-foreground: 0 0% 100%;
+    --railway-orange: 28 90% 52%;
+    --railway-orange-foreground: 0 0% 100%;
+
+    --sidebar-background: 220 60% 18%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 42 90% 50%;
+    --sidebar-primary-foreground: 220 30% 12%;
+    --sidebar-accent: 220 50% 26%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 220 40% 28%;
+    --sidebar-ring: 42 90% 50%;
+
+    --gradient-navy: linear-gradient(135deg, hsl(220 60% 22%), hsl(220 50% 30%));
+    --gradient-red: linear-gradient(135deg, hsl(0 78% 42%), hsl(0 70% 52%));
+    --gradient-gold: linear-gradient(135deg, hsl(42 90% 50%), hsl(38 90% 55%));
+    --shadow-card: 0 1px 3px 0 hsl(220 30% 12% / 0.06), 0 1px 2px -1px hsl(220 30% 12% / 0.06);
+    --shadow-elevated: 0 10px 30px -10px hsl(220 60% 22% / 0.15);
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 210 20% 95%;
+    --card: 220 25% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 42 90% 50%;
+    --primary-foreground: 220 30% 12%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 220 20% 18%;
+    --muted-foreground: 215 15% 60%;
+    --accent: 220 20% 18%;
+    --accent-foreground: 210 20% 95%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 20% 95%;
+    --border: 220 20% 22%;
+    --input: 220 20% 22%;
+    --ring: 42 90% 50%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 210 15% 85%;
+    --sidebar-primary: 42 90% 50%;
+    --sidebar-primary-foreground: 220 30% 12%;
+    --sidebar-accent: 220 25% 15%;
+    --sidebar-accent-foreground: 210 15% 90%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 42 90% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .gradient-navy {
+    background: linear-gradient(135deg, hsl(var(--railway-navy)), hsl(var(--railway-navy-light)));
+  }
+  .gradient-red {
+    background: linear-gradient(135deg, hsl(var(--railway-red)), hsl(0 70% 52%));
+  }
+  .text-railway-gold {
+    color: hsl(var(--railway-gold));
+  }
+}

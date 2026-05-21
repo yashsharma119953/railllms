@@ -1,0 +1,39 @@
+3 pannels: super admin, admin, user
+
+super admin: 
+-> can create admins
+
+admin:
+-> can create user
+
+
+Tasks:
+-> 3 different dashboards for 3 diff roles based on their login
+-> based on login, user can access limited pages which are developed for particular role.
+->check database
+-> remove sign up/ register pages
+-> fixed super admin credentials:
+      mail: superadmin@acetians.in
+      pass: Acetians-44
+-> after super admin create admin , super admin will generate admin's username and password
+    admins can login using those credentials
+    login page should detect where the user is superadmin, admin or user and open their dashboard.
+
+==========================================
+
+-> create user login
+-> give usernames instead of mail while creating users and admins
+-> remove switch roles (demo)
+
+
+=============
+
+Pavan@admin  -  RLSD7jnJSy
+Yash@admin - BDDxQdHJbt
+
+yash@user - CBnSrEHcyk
+pavan@user - RftAcAVxfx
+
+============
+ID- Sr.DOM-PRYJ 
+Pass: AcetiansTechnologies@2026 

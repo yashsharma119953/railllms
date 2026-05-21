@@ -1,0 +1,1 @@
+ALTER TABLE public.admin_assignments DROP CONSTRAINT admin_assignments_admin_user_id_fkey;
