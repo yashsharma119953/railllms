@@ -26,7 +26,6 @@ interface UserProfile {
 interface CreatedUser {
   name: string;
   username: string;
-  designation: string;
   password: string;
 }
 
@@ -39,7 +38,7 @@ export default function UserManagement() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ fullName: "", username: "", hrmsId: "", designation: "", location: "", cugNumber: "" });
+  const [form, setForm] = useState({ username: "" });
   const [loading, setLoading] = useState(false);
   const [createdUsers, setCreatedUsers] = useState<CreatedUser[]>([]);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
@@ -64,19 +63,19 @@ export default function UserManagement() {
 
       const { error } = await supabase.from("profiles").insert({
         user_id: userId,
-        full_name: form.fullName,
+        full_name: username,
         username,
         password,
-        hrms_id: form.hrmsId || null,
-        designation: form.designation || null,
-        location: profile?.location || form.location || null,
-        cug_number: form.cugNumber || null,
+        hrms_id: null,
+        designation: null,
+        location: profile?.location || null,
+        cug_number: null,
       });
       if (error) throw error;
 
-      setCreatedUsers(prev => [...prev, { name: form.fullName, username, designation: form.designation, password }]);
-      toast.success(`User "${form.fullName}" created successfully!`);
-      setForm({ fullName: "", username: "", hrmsId: "", designation: "", location: "", cugNumber: "" });
+      setCreatedUsers(prev => [...prev, { name: username, username, password }]);
+      toast.success(`User "${username}" created successfully!`);
+      setForm({ username: "" });
       fetchUsers();
     } catch (err: any) {
       toast.error(err.message);
@@ -93,25 +92,25 @@ export default function UserManagement() {
       const lines = text.split("\n").filter(l => l.trim());
       const newUsers: CreatedUser[] = [];
 
-      for (let i = 1; i < lines.length; i++) {
+      for (let i = 0; i < lines.length; i++) {
         const cols = lines[i].split(",").map(c => c.trim());
-        if (cols.length < 3 || !cols[1]) continue;
-        const [fullName, username, designation, hrmsId, cugNumber] = cols;
+        if (!cols[0]) continue;
+        const username = cols[0];
         const password = generatePassword();
         const userId = crypto.randomUUID();
 
         const { error } = await supabase.from("profiles").insert({
           user_id: userId,
-          full_name: fullName,
+          full_name: username,
           username,
           password,
-          hrms_id: hrmsId || null,
-          designation: designation || null,
+          hrms_id: null,
+          designation: null,
           location: profile?.location || null,
-          cug_number: cugNumber || null,
+          cug_number: null,
         });
         if (error) throw error;
-        newUsers.push({ name: fullName, username, designation: designation || "", password });
+        newUsers.push({ name: username, username, password });
       }
 
       setCreatedUsers(prev => [...prev, ...newUsers]);
@@ -126,8 +125,8 @@ export default function UserManagement() {
   };
 
   const filteredUsers = users.filter((u) =>
-    u.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    u.hrms_id?.toLowerCase().includes(search.toLowerCase())
+    (u.full_name || u.username || "").toLowerCase().includes(search.toLowerCase()) ||
+    u.username?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -154,32 +153,8 @@ export default function UserManagement() {
               </DialogHeader>
               <form onSubmit={handleCreateUser} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Full Name *</Label>
-                  <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required placeholder="e.g., Ramesh Kumar" />
-                </div>
-                <div className="space-y-2">
                   <Label>Username</Label>
-                  <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="e.g., ramesh.kumar@acetians.in" required />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>HRMS ID</Label>
-                    <Input value={form.hrmsId} onChange={(e) => setForm({ ...form, hrmsId: e.target.value })} placeholder="e.g., HRMS128" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>CUG Number</Label>
-                    <Input value={form.cugNumber} onChange={(e) => setForm({ ...form, cugNumber: e.target.value })} placeholder="e.g., 9876543210" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>Designation</Label>
-                    <Input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} placeholder="e.g., Pointsman" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Location</Label>
-                    <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder={profile?.location || "e.g., Sikohabad"} />
-                  </div>
+                  <Input value={form.username} onChange={(e) => setForm({ username: e.target.value })} placeholder="e.g., user_001" required />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating..." : "Create User"}
@@ -191,7 +166,7 @@ export default function UserManagement() {
                   <Upload className="w-4 h-4" /> Bulk Upload via CSV
                 </Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  CSV format: Name, Designation, HRMS ID, CUG Number
+                  CSV format: Username (one per line)
                 </p>
                 <div className="flex gap-2">
                   <Input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} />
@@ -215,7 +190,6 @@ export default function UserManagement() {
                   <div>
                     <span className="font-medium text-sm">{u.name}</span>
                     <span className="text-xs text-muted-foreground ml-2">{u.username}</span>
-                    {u.designation && <span className="text-xs text-muted-foreground ml-2">({u.designation})</span>}
                   </div>
                   <div className="flex items-center gap-2">
                     <code className="text-xs bg-muted px-2 py-1 rounded font-mono">

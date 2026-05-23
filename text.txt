@@ -37,3 +37,27 @@ pavan@user - RftAcAVxfx
 ============
 ID- Sr.DOM-PRYJ 
 Pass: AcetiansTechnologies@2026 
+
+
+----------
+ADMIN | test-2 | Username: test-2 | Password: X73SxqQwZ9
+USER | test_2_user-1 | Username: test_2_user-1 | Password: 5sv22tXNAW
+USER | test_2_user-2 | Username: test_2_user-2 | Password: UEAUWG9fSW
+USER | test_2_user-3 | Username: test_2_user-3 | Password: vVjAT9AXMP
+USER | test_2_user-4 | Username: test_2_user-4 | Password: SP67vFR3pZ
+USER | test_2_user-5 | Username: test_2_user-5 | Password: CPe5FRDate
+USER | test_2_user-6 | Username: test_2_user-6 | Password: 3237jMACUq
+USER | test_2_user-7 | Username: test_2_user-7 | Password: xvKNuPnZSy
+USER | test_2_user-8 | Username: test_2_user-8 | Password: xNexfCEHJM
+USER | test_2_user-9 | Username: test_2_user-9 | Password: Q8qu3bMCdJ
+USER | test_2_user-10 | Username: test_2_user-10 | Password: 5fN49ja76g
+USER | test_2_user-11 | Username: test_2_user-11 | Password: YLQcmWNDVx
+USER | test_2_user-12 | Username: test_2_user-12 | Password: 7hqb36EkBY
+USER | test_2_user-13 | Username: test_2_user-13 | Password: 5BcBync8Pv
+USER | test_2_user-14 | Username: test_2_user-14 | Password: X657tXMLRw
+USER | test_2_user-15 | Username: test_2_user-15 | Password: GstbeUKsae
+USER | test_2_user-16 | Username: test_2_user-16 | Password: Y9zcj2YzuH
+USER | test_2_user-17 | Username: test_2_user-17 | Password: bFMgeQw56T
+USER | test_2_user-18 | Username: test_2_user-18 | Password: bZYu8eY52X
+USER | test_2_user-19 | Username: test_2_user-19 | Password: KhLpsDNc7c
+USER | test_2_user-20 | Username: test_2_user-20 | Password: cEDzYZfNGf

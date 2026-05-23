@@ -20,8 +20,9 @@ const COLORS = ["hsl(220, 60%, 22%)", "hsl(0, 78%, 42%)", "hsl(42, 90%, 50%)", "
 
 interface UserPerf {
   user_id: string;
-  hrms_id: string;
   full_name: string;
+  hrms_id: string;
+  cug_number: string;
   location: string;
   designation: string;
   totalExams: number;
@@ -40,6 +41,21 @@ export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterTI, setFilterTI] = useState("all");
   const [loading, setLoading] = useState(true);
+
+  const resolveDisplayName = (profile: any, result: any, fallback = "Unknown") => {
+    const candidateInfo = result?.answers?.candidate_info;
+    return (
+      result?.full_name ||
+      candidateInfo?.full_name ||
+      profile?.full_name ||
+      profile?.username ||
+      result?.name ||
+      result?.user_name ||
+      result?.hrms_id ||
+      profile?.hrms_id ||
+      fallback
+    );
+  };
 
   useEffect(() => {
     async function fetchAll() {
@@ -67,17 +83,19 @@ export default function ReportsPage() {
 
   // Build per-user performance
   const userPerformance: UserPerf[] = useMemo(() => {
-    const map: Record<string, { hrms_id: string; full_name: string; location: string; designation: string; obtained: number; total: number; count: number }> = {};
+    const map: Record<string, { hrms_id: string; full_name: string; cug_number: string; location: string; designation: string; obtained: number; total: number; count: number }> = {};
     
     results.forEach(r => {
       const profile = profiles.find(p => p.user_id === r.user_id);
       const key = r.user_id;
       if (!map[key]) {
+        const candidateInfo = r.answers?.candidate_info;
         map[key] = {
-          hrms_id: r.hrms_id || profile?.hrms_id || "-",
-          full_name: profile?.full_name || r.hrms_id || "Unknown",
-          location: profile?.location || "-",
-          designation: profile?.designation || "-",
+          hrms_id: r.hrms_id || candidateInfo?.hrms_id || profile?.hrms_id || "-",
+          full_name: resolveDisplayName(profile, r),
+          cug_number: r.cug_number || candidateInfo?.cug_number || profile?.cug_number || "-",
+          location: r.location || candidateInfo?.location || profile?.location || "-",
+          designation: r.designation || candidateInfo?.designation || profile?.designation || "-",
           obtained: 0, total: 0, count: 0,
         };
       }
@@ -88,8 +106,9 @@ export default function ReportsPage() {
 
     return Object.entries(map).map(([user_id, d]) => ({
       user_id,
-      hrms_id: d.hrms_id,
       full_name: d.full_name,
+      hrms_id: d.hrms_id,
+      cug_number: d.cug_number,
       location: d.location,
       designation: d.designation,
       totalExams: d.count,
@@ -115,7 +134,7 @@ export default function ReportsPage() {
     }
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      data = data.filter(u => u.full_name.toLowerCase().includes(s) || u.hrms_id.toLowerCase().includes(s));
+      data = data.filter(u => [u.full_name, u.hrms_id, u.cug_number, u.location, u.designation].join(" ").toLowerCase().includes(s));
     }
     return data;
   }, [userPerformance, filterTI, searchTerm, admins]);
@@ -183,7 +202,7 @@ export default function ReportsPage() {
     }
     if (searchTerm) {
       const s = searchTerm.toLowerCase();
-      data = data.filter((u: any) => u.full_name?.toLowerCase().includes(s) || u.hrms_id?.toLowerCase().includes(s));
+      data = data.filter((u: any) => [u.full_name, u.hrms_id, u.cug_number, u.location, u.designation].join(" ").toLowerCase().includes(s));
     }
     return data;
   }, [notAttempted, filterTI, searchTerm, admins]);
@@ -198,8 +217,8 @@ export default function ReportsPage() {
           <p className="text-muted-foreground text-sm mt-1">{t("reportsDesc")}</p>
         </div>
         <Button variant="outline" onClick={() => {
-          const csv = ["Name,HRMS ID,Location,Designation,Exams,Avg%,Status",
-            ...userPerformance.map(u => `${u.full_name},${u.hrms_id},${u.location},${u.designation},${u.totalExams},${u.avgPercent}%,${u.passed ? "Pass" : "Fail"}`)
+          const csv = ["Name,HRMS ID,CUG Number,Location,Designation,Exams,Avg%,Status",
+            ...userPerformance.map(u => `${u.full_name || u.hrms_id || "Unknown"},${u.hrms_id},${u.cug_number},${u.location},${u.designation},${u.totalExams},${u.avgPercent}%,${u.passed ? "Pass" : "Fail"}`)
           ].join("\n");
           const blob = new Blob([csv], { type: "text/csv" });
           const a = document.createElement("a");
@@ -259,6 +278,7 @@ export default function ReportsPage() {
                       <TableHead>#</TableHead>
                       <TableHead>{t("name")}</TableHead>
                       <TableHead>{t("hrmsId")}</TableHead>
+                      <TableHead>{t("cugNumber")}</TableHead>
                       <TableHead>{t("location")}</TableHead>
                       <TableHead>{t("examsCount")}</TableHead>
                       <TableHead>{lang === "hi" ? "औसत %" : "Avg %"}</TableHead>
@@ -268,8 +288,9 @@ export default function ReportsPage() {
                     {bestPerformers.map((u, i) => (
                       <TableRow key={u.user_id}>
                         <TableCell><span className="w-6 h-6 rounded-full bg-railway-gold/10 text-railway-gold flex items-center justify-center text-xs font-bold">{i + 1}</span></TableCell>
-                        <TableCell className="font-medium">{u.full_name}</TableCell>
+                        <TableCell className="font-medium">{u.full_name || u.hrms_id || "Unknown"}</TableCell>
                         <TableCell><Badge variant="outline">{u.hrms_id}</Badge></TableCell>
+                        <TableCell><Badge variant="outline">{u.cug_number}</Badge></TableCell>
                         <TableCell className="text-sm">{u.location}</TableCell>
                         <TableCell>{u.totalExams}</TableCell>
                         <TableCell><span className="font-bold text-green-600">{u.avgPercent}%</span></TableCell>
@@ -289,6 +310,7 @@ export default function ReportsPage() {
                       <TableHead>#</TableHead>
                       <TableHead>{t("name")}</TableHead>
                       <TableHead>{t("hrmsId")}</TableHead>
+                      <TableHead>{t("cugNumber")}</TableHead>
                       <TableHead>{t("location")}</TableHead>
                       <TableHead>{t("examsCount")}</TableHead>
                       <TableHead>{lang === "hi" ? "औसत %" : "Avg %"}</TableHead>
@@ -296,12 +318,13 @@ export default function ReportsPage() {
                   </TableHeader>
                   <TableBody>
                     {lowPerformers.length === 0 ? (
-                      <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">{t("noLowPerformers")}</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={7} className="text-center py-6 text-muted-foreground">{t("noLowPerformers")}</TableCell></TableRow>
                     ) : lowPerformers.map((u, i) => (
                       <TableRow key={u.user_id}>
                         <TableCell><span className="w-6 h-6 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-xs font-bold">{i + 1}</span></TableCell>
-                        <TableCell className="font-medium">{u.full_name}</TableCell>
+                        <TableCell className="font-medium">{u.full_name || u.hrms_id || "Unknown"}</TableCell>
                         <TableCell><Badge variant="outline">{u.hrms_id}</Badge></TableCell>
+                        <TableCell><Badge variant="outline">{u.cug_number}</Badge></TableCell>
                         <TableCell className="text-sm">{u.location}</TableCell>
                         <TableCell>{u.totalExams}</TableCell>
                         <TableCell><span className="font-bold text-destructive">{u.avgPercent}%</span></TableCell>
@@ -322,6 +345,7 @@ export default function ReportsPage() {
                   <TableRow>
                     <TableHead>{t("name")}</TableHead>
                     <TableHead>{t("hrmsId")}</TableHead>
+                    <TableHead>{t("cugNumber")}</TableHead>
                     <TableHead>{t("locationTI")}</TableHead>
                     <TableHead>{t("designation")}</TableHead>
                     <TableHead>{t("examsCount")}</TableHead>
@@ -333,8 +357,9 @@ export default function ReportsPage() {
                 <TableBody>
                   {filtered.map((u) => (
                     <TableRow key={u.user_id}>
-                      <TableCell className="font-medium">{u.full_name}</TableCell>
+                      <TableCell className="font-medium">{u.full_name || u.hrms_id || "Unknown"}</TableCell>
                       <TableCell><Badge variant="outline">{u.hrms_id}</Badge></TableCell>
+                      <TableCell><Badge variant="outline">{u.cug_number}</Badge></TableCell>
                       <TableCell>{u.location} <span className="text-xs text-muted-foreground">({tiLocations[u.location] || "-"})</span></TableCell>
                       <TableCell className="text-sm">{u.designation}</TableCell>
                       <TableCell>{u.totalExams}</TableCell>
@@ -359,6 +384,7 @@ export default function ReportsPage() {
                   <TableRow>
                     <TableHead>{t("name")}</TableHead>
                     <TableHead>{t("hrmsId")}</TableHead>
+                    <TableHead>{t("cugNumber")}</TableHead>
                     <TableHead>{t("locationTI")}</TableHead>
                     <TableHead>{t("designation")}</TableHead>
                     <TableHead>{t("status")}</TableHead>
@@ -366,11 +392,12 @@ export default function ReportsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredNotAttempted.length === 0 ? (
-                    <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">{t("allAttempted")}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">{t("allAttempted")}</TableCell></TableRow>
                   ) : filteredNotAttempted.map((u: any) => (
                     <TableRow key={u.id}>
-                      <TableCell className="font-medium">{u.full_name}</TableCell>
+                      <TableCell className="font-medium">{u.full_name || u.username || u.hrms_id || "Unknown"}</TableCell>
                       <TableCell><Badge variant="outline">{u.hrms_id || "-"}</Badge></TableCell>
+                      <TableCell><Badge variant="outline">{u.cug_number || "-"}</Badge></TableCell>
                       <TableCell>{u.location || "-"} <span className="text-xs text-muted-foreground">({tiLocations[u.location] || "-"})</span></TableCell>
                       <TableCell className="text-sm">{u.designation || "-"}</TableCell>
                       <TableCell><Badge variant="secondary">{t("notAttempted")}</Badge></TableCell>

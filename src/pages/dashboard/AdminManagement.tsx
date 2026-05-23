@@ -25,13 +25,28 @@ interface Admin {
   admin_user_id: string;
 }
 
+interface CreatedAccount {
+  name: string;
+  username: string;
+  cug: string;
+  password: string;
+  kind: "admin" | "user";
+}
+
+const slugifyName = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
 export default function AdminManagement() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [open, setOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [form, setForm] = useState({ name: "", username: "", cug: "" });
   const [loading, setLoading] = useState(false);
-  const [createdAdmins, setCreatedAdmins] = useState<{ name: string; username: string; cug: string; password: string }[]>([]);
+  const [createdAccounts, setCreatedAccounts] = useState<CreatedAccount[]>([]);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
@@ -54,7 +69,36 @@ export default function AdminManagement() {
       cug_number: cug,
     });
     if (error) throw error;
-    return { name, cug, password };
+    return { name, username, cug, password, kind: "admin" as const };
+  };
+
+  const createDefaultUsersForAdmin = async (adminName: string, location: string) => {
+    const base = slugifyName(adminName) || "admin";
+    const defaultUsers = Array.from({ length: 20 }, (_, index) => {
+      const username = `${base}_user-${index + 1}`;
+      return {
+        user_id: crypto.randomUUID(),
+        full_name: username,
+        username,
+        password: generatePassword(),
+        hrms_id: null,
+        designation: null,
+        location,
+        cug_number: null,
+        is_active: true,
+      };
+    });
+
+    const { error } = await supabase.from("profiles").insert(defaultUsers);
+    if (error) throw error;
+
+    return defaultUsers.map((user) => ({
+      name: user.full_name,
+      username: user.username,
+      cug: "",
+      password: user.password,
+      kind: "user" as const,
+    }));
   };
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
@@ -63,9 +107,10 @@ export default function AdminManagement() {
     try {
       const username = form.username.trim();
       if (!username) throw new Error("Username is required");
-      const result = await createAdminRecord(form.name, username, form.cug);
-      setCreatedAdmins(prev => [...prev, result]);
-      toast.success(`Admin "${form.name}" created successfully!`);
+      const adminResult = await createAdminRecord(form.name, username, form.cug);
+      const userResults = await createDefaultUsersForAdmin(form.name, form.name);
+      setCreatedAccounts(prev => [...prev, adminResult, ...userResults]);
+      toast.success(`Admin "${form.name}" created with 20 default users.`);
       setOpen(false);
       setForm({ name: "", username: "", cug: "" });
       fetchAdmins();
@@ -84,7 +129,7 @@ export default function AdminManagement() {
       const lines = text.split("\n").filter(l => l.trim());
       const header = lines[0].toLowerCase();
       const startIdx = header.includes("name") ? 1 : 0;
-      const results: { name: string; username: string; cug: string; password: string }[] = [];
+      const results: CreatedAccount[] = [];
 
       for (let i = startIdx; i < lines.length; i++) {
         const cols = lines[i].split(",").map(c => c.trim());
@@ -97,7 +142,7 @@ export default function AdminManagement() {
         }
       }
 
-      setCreatedAdmins(prev => [...prev, ...results]);
+      setCreatedAccounts(prev => [...prev, ...results]);
       toast.success(`${results.length} admins created via CSV!`);
       setBulkOpen(false);
       setCsvFile(null);
@@ -123,13 +168,21 @@ export default function AdminManagement() {
       toast.error(error.message);
       return;
     }
-    setCreatedAdmins(prev => [...prev, { name: adminName, username: username || "", cug: "", password: newPassword }]);
+    setCreatedAccounts(prev => [...prev, { name: adminName, username: username || "", cug: "", password: newPassword, kind: "admin" }]);
     toast.success(`New password generated for ${adminName}`);
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied!");
+  };
+
+  const copyAllCredentials = () => {
+    const text = createdAccounts
+      .map((account) => `${account.kind.toUpperCase()} | ${account.name} | Username: ${account.username} | Password: ${account.password}`)
+      .join("\n");
+    navigator.clipboard.writeText(text);
+    toast.success("All credentials copied!");
   };
 
   return (
@@ -192,19 +245,29 @@ export default function AdminManagement() {
         </div>
       </div>
 
-      {createdAdmins.length > 0 && (
+      {createdAccounts.length > 0 && (
         <Card className="border-railway-gold/30 bg-railway-gold/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-railway-gold" /> Generated Passwords
-            </CardTitle>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-railway-gold" /> Generated Credentials
+              </CardTitle>
+              <Button variant="outline" size="sm" onClick={copyAllCredentials}>
+                <Copy className="w-4 h-4 mr-2" /> Copy All
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-muted-foreground mb-3">
+              The admin gets one login, and 20 default user accounts are created automatically.
+              Usernames follow the pattern <span className="font-medium">admin-name_user-1</span> to <span className="font-medium">admin-name_user-20</span>.
+            </p>
             <div className="space-y-2">
-              {createdAdmins.map((a, i) => (
+              {createdAccounts.map((a, i) => (
                 <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border bg-background">
                   <div>
                     <p className="text-sm font-medium">{a.name}</p>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{a.kind}</p>
                     {a.username && <p className="text-xs text-muted-foreground">Username: {a.username}</p>}
                     {a.cug && <p className="text-xs text-muted-foreground">CUG: {a.cug}</p>}
                   </div>
@@ -231,9 +294,10 @@ export default function AdminManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Admin Name</TableHead>
+                <TableHead>Username</TableHead>
                 <TableHead>CUG Number</TableHead>
-                <TableHead className="w-32">Actions</TableHead>
+                <TableHead className="w-32 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -249,8 +313,8 @@ export default function AdminManagement() {
                   <TableCell className="font-medium">{admin.admin_name}</TableCell>
                   <TableCell>{admin.admin_username || "-"}</TableCell>
                   <TableCell>{admin.cug_number || "-"}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8" title="Reset Password" onClick={() => handleResetPassword(admin.id, admin.admin_name, admin.admin_username)}>
                         <KeyRound className="w-4 h-4 text-railway-gold" />
                       </Button>
@@ -261,7 +325,6 @@ export default function AdminManagement() {
                   </TableCell>
                 </TableRow>
               ))}
-                  <TableHead>Username</TableHead>
             </TableBody>
           </Table>
         </CardContent>

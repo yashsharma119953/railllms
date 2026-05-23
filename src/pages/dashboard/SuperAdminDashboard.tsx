@@ -25,6 +25,7 @@ const COLORS = ["hsl(152,60%,40%)", "hsl(0,78%,42%)", "hsl(42,90%,50%)", "hsl(22
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const { t, lang } = useLanguage();
+  const [now, setNow] = useState(new Date());
   const [stats, setStats] = useState({ totalUsers: 0, totalAdmins: 0, totalCourses: 0, totalExams: 0 });
   const [recentExams, setRecentExams] = useState<any[]>([]);
   const [recentResults, setRecentResults] = useState<any[]>([]);
@@ -61,6 +62,14 @@ export default function SuperAdminDashboard() {
       setSchedules(schedRes.data || []);
     }
     fetchAll();
+  }, []);
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+
+    return () => window.clearInterval(timerId);
   }, []);
 
   const attemptedUserIds = new Set(results.map(r => r.user_id));
@@ -108,7 +117,16 @@ export default function SuperAdminDashboard() {
     { name: "Not Attempted", value: notAttemptedCount },
   ];
 
-  const upcomingSchedules = schedules.filter(s => s.status === "upcoming" || new Date(s.scheduled_date) >= new Date());
+  const getScheduleStatus = (scheduleDate: string, startTime: string, endTime: string) => {
+    const start = new Date(`${scheduleDate}T${startTime}`);
+    const end = new Date(`${scheduleDate}T${endTime}`);
+
+    if (now < start) return "upcoming";
+    if (now >= start && now <= end) return "active";
+    return "completed";
+  };
+
+  const upcomingSchedules = schedules.filter((s) => getScheduleStatus(s.scheduled_date, s.start_time, s.end_time) !== "completed");
 
   const topPerformers = [...userPerfs].sort((a, b) => b.avgPercent - a.avgPercent).slice(0, 5);
 
@@ -306,7 +324,7 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-muted-foreground">{s.start_time?.slice(0, 5)} – {s.end_time?.slice(0, 5)}</p>
-                  <Badge variant="outline" className="text-[10px] mt-0.5">{s.status}</Badge>
+                  <Badge variant="outline" className="text-[10px] mt-0.5">{getScheduleStatus(s.scheduled_date, s.start_time, s.end_time)}</Badge>
                 </div>
               </div>
             ))}

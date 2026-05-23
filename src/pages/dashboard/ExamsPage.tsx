@@ -12,9 +12,11 @@ import { toast } from "sonner";
 import { ClipboardList, Clock, Play, CheckCircle, XCircle } from "lucide-react";
 
 interface ExamRegForm {
-  name: string;
-  station: string;
+  fullName: string;
   hrmsId: string;
+  cugNumber: string;
+  designation: string;
+  location: string;
 }
 
 export default function ExamsPage() {
@@ -22,7 +24,8 @@ export default function ExamsPage() {
   const [regOpen, setRegOpen] = useState(false);
   const [examOpen, setExamOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<any>(null);
-  const [regForm, setRegForm] = useState<ExamRegForm>({ name: "", station: "", hrmsId: "" });
+  const [regForm, setRegForm] = useState<ExamRegForm>({ fullName: "", hrmsId: "", cugNumber: "", designation: "", location: "" });
+  const [candidateInfoState, setCandidateInfoState] = useState<Record<string, any> | null>(null);
   const [questions, setQuestions] = useState<any[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -40,13 +43,52 @@ export default function ExamsPage() {
 
   const handleStartExam = (exam: any) => {
     setSelectedExam(exam);
-    setRegForm({ name: "", station: "", hrmsId: "" });
+    setRegForm({ fullName: "", hrmsId: "", cugNumber: "", designation: "", location: "" });
     setRegOpen(true);
   };
 
   const handleRegSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedExam) return;
+    const candidateInfo = {
+      full_name: regForm.fullName.trim(),
+      hrms_id: regForm.hrmsId.trim(),
+      cug_number: regForm.cugNumber.trim(),
+      designation: regForm.designation.trim(),
+      location: regForm.location.trim(),
+    };
+
+    setCandidateInfoState(candidateInfo);
+
+    const checkDuplicateAttempt = async () => {
+      const { data, error } = await supabase
+        .from("exam_results")
+        .select("id, user_id, hrms_id, cug_number, answers")
+        .eq("exam_id", selectedExam.id);
+
+      if (error) throw error;
+
+      const normalizedHrms = candidateInfo.hrms_id.toLowerCase();
+      const normalizedCug = candidateInfo.cug_number.toLowerCase();
+
+      return (data || []).find((row: any) => {
+        const rowHrms = (row.hrms_id || row.answers?.candidate_info?.hrms_id || "").toString().trim().toLowerCase();
+        const rowCug = (row.cug_number || row.answers?.candidate_info?.cug_number || "").toString().trim().toLowerCase();
+        return rowHrms === normalizedHrms && rowCug === normalizedCug;
+      });
+    };
+
+    try {
+      const existingAttempt = await checkDuplicateAttempt();
+      if (existingAttempt) {
+        toast.error("You have already attempted this exam");
+        return;
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+      return;
+    }
+
     const { data } = await supabase.from("questions").select("*").eq("exam_id", selectedExam.id).order("sort_order");
     setQuestions(data || []);
     setAnswers({});
@@ -66,14 +108,28 @@ export default function ExamsPage() {
     });
 
     try {
-      const demoUserId = crypto.randomUUID();
+      const candidateInfoToSave = candidateInfoState ?? {
+        full_name: regForm.fullName.trim(),
+        hrms_id: regForm.hrmsId.trim(),
+        cug_number: regForm.cugNumber.trim(),
+        designation: regForm.designation.trim(),
+        location: regForm.location.trim(),
+      };
+
       const { error } = await supabase.from("exam_results").insert({
         exam_id: selectedExam.id,
-        user_id: demoUserId,
-        hrms_id: regForm.hrmsId,
+        user_id: user.id,
+        hrms_id: regForm.hrmsId.trim(),
+        full_name: regForm.fullName.trim(),
+        cug_number: regForm.cugNumber.trim(),
+        designation: regForm.designation.trim(),
+        location: regForm.location.trim(),
         obtained_marks: obtained,
         total_marks: total,
-        answers: answers as any,
+        answers: {
+          ...(answers as any),
+          candidate_info: candidateInfoToSave,
+        } as any,
       });
       if (error) throw error;
       setResult({ obtained, total });
@@ -138,15 +194,23 @@ export default function ExamsPage() {
           <form onSubmit={handleRegSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>{t("fullName")}</Label>
-              <Input placeholder={t("yourFullName")} value={regForm.name} onChange={(e) => setRegForm({ ...regForm, name: e.target.value })} required />
-            </div>
-            <div className="space-y-2">
-              <Label>{t("station")}</Label>
-              <Input placeholder="e.g., SKB, PYG, ALD" value={regForm.station} onChange={(e) => setRegForm({ ...regForm, station: e.target.value })} required />
+              <Input placeholder={t("yourFullName")} value={regForm.fullName} onChange={(e) => setRegForm({ ...regForm, fullName: e.target.value })} required />
             </div>
             <div className="space-y-2">
               <Label>{t("hrmsId")}</Label>
               <Input placeholder={lang === "hi" ? "आपकी HRMS आईडी" : "Your HRMS ID"} value={regForm.hrmsId} onChange={(e) => setRegForm({ ...regForm, hrmsId: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("cugNumber")}</Label>
+              <Input placeholder={lang === "hi" ? "आपका CUG नंबर" : "Your CUG Number"} value={regForm.cugNumber} onChange={(e) => setRegForm({ ...regForm, cugNumber: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("designation")}</Label>
+              <Input placeholder={lang === "hi" ? "पदनाम" : "Designation"} value={regForm.designation} onChange={(e) => setRegForm({ ...regForm, designation: e.target.value })} required />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("location")}</Label>
+              <Input placeholder={lang === "hi" ? "स्थान" : "Location"} value={regForm.location} onChange={(e) => setRegForm({ ...regForm, location: e.target.value })} required />
             </div>
             <p className="text-xs text-muted-foreground">{t("exam")}: {selectedExam?.title}</p>
             <Button type="submit" className="w-full bg-railway-navy hover:bg-railway-navy-light text-white">
@@ -162,7 +226,7 @@ export default function ExamsPage() {
             <DialogTitle>{selectedExam?.title}</DialogTitle>
             {!submitted && (
               <p className="text-xs text-muted-foreground mt-1">
-                {t("candidate")}: {regForm.name} | {t("station")}: {regForm.station} | HRMS: {regForm.hrmsId}
+                {t("candidate")}: {regForm.fullName} | HRMS: {regForm.hrmsId} | CUG: {regForm.cugNumber}
               </p>
             )}
           </DialogHeader>
@@ -183,7 +247,9 @@ export default function ExamsPage() {
               <Badge variant={result.obtained / result.total >= 0.6 ? "default" : "destructive"} className="text-base px-4 py-1">
                 {result.obtained / result.total >= 0.6 ? t("passedResult") : t("failedResult")}
               </Badge>
-              <p className="text-sm text-muted-foreground">{regForm.name} — {regForm.station} — {regForm.hrmsId}</p>
+              <p className="text-sm text-muted-foreground">
+                {regForm.fullName} — {regForm.hrmsId} — {regForm.cugNumber} — {regForm.designation} — {regForm.location}
+              </p>
             </div>
           ) : (
             <div className="space-y-6">

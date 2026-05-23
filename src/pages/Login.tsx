@@ -82,7 +82,19 @@ export default function Login() {
           <CardContent className="px-6 pb-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-3 rounded-lg border border-border p-3">
-                <p className="text-xs font-medium text-muted-foreground">Select role</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-muted-foreground">Select role</p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-[11px] text-muted-foreground"
+                    onClick={() => setSelectedRole(null)}
+                    disabled={!selectedRole}
+                  >
+                    Clear
+                  </Button>
+                </div>
                 <div className="flex items-center gap-4">
                   <label className="flex items-center gap-2 text-sm">
                     <input
