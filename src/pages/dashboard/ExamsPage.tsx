@@ -250,6 +250,37 @@ export default function ExamsPage() {
               <p className="text-sm text-muted-foreground">
                 {regForm.fullName} — {regForm.hrmsId} — {regForm.cugNumber} — {regForm.designation} — {regForm.location}
               </p>
+              <div className="mt-6 text-left">
+                <h3 className="text-lg font-medium mb-3">{t("reviewAnswers")}</h3>
+                <div className="space-y-4">
+                  {questions.map((q, idx) => {
+                    const userAns = (answers as any)[q.id];
+                    const correct = q.correct_option;
+                    return (
+                      <div key={q.id} className="p-4 border rounded-lg">
+                        <p className="font-medium">{lang === "hi" ? "प्र" : "Q"}{idx + 1}. {q.question_text}</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+                          {[
+                            { key: "A", text: q.option_a },
+                            { key: "B", text: q.option_b },
+                            { key: "C", text: q.option_c },
+                            { key: "D", text: q.option_d },
+                          ].map(opt => (
+                            <div key={opt.key} className={`p-3 rounded-lg border text-sm ${opt.key === correct ? "border-railway-green bg-railway-green/10 font-medium" : "border-border"} ${opt.key === userAns ? "ring-2 ring-offset-1 ring-railway-navy" : ""}`}>
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium mr-1">{opt.key}.</span>
+                                <span>{opt.text}</span>
+                                {opt.key === correct && <span className="ml-auto text-railway-green text-xs">{t("correct")}</span>}
+                                {opt.key === userAns && <span className="ml-2 text-railway-navy text-xs">{t("yourAnswer")}</span>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-6">

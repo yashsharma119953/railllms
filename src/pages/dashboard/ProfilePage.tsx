@@ -19,11 +19,7 @@ export default function ProfilePage() {
   const { user, profile, role } = useAuth();
   const { t, lang } = useLanguage();
   const [form, setForm] = useState({
-    full_name: profile?.full_name || "",
-    hrms_id: profile?.hrms_id || "",
-    cug_number: profile?.cug_number || "",
-    designation: profile?.designation || "",
-    location: profile?.location || "",
+    username: profile?.username || "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -41,18 +37,14 @@ export default function ProfilePage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!form.hrms_id.trim()) {
-      toast.error("HRMS ID is required!");
+    if (!form.username.trim()) {
+      toast.error("Username is required!");
       return;
     }
     setSaving(true);
     try {
       const { error } = await supabase.from("profiles").update({
-        full_name: form.full_name,
-        hrms_id: form.hrms_id,
-        cug_number: form.cug_number,
-        designation: form.designation,
-        location: form.location,
+        username: form.username,
       }).eq("user_id", user.id);
       if (error) throw error;
       toast.success("Profile updated successfully!");
@@ -157,25 +149,9 @@ export default function ProfilePage() {
         <CardContent>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>{t("fullName")}</Label>
-                <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("hrmsId")} <span className="text-destructive">*</span></Label>
-                <Input value={form.hrms_id} onChange={(e) => setForm({ ...form, hrms_id: e.target.value })} placeholder={t("required")} required />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("cugNumber")}</Label>
-                <Input value={form.cug_number} onChange={(e) => setForm({ ...form, cug_number: e.target.value })} />
-              </div>
-              <div className="space-y-2">
-                <Label>{t("designation")}</Label>
-                <Input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} />
-              </div>
               <div className="space-y-2 sm:col-span-2">
-                <Label>{t("location")}</Label>
-                <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+                <Label>{t("username")}</Label>
+                <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required />
               </div>
             </div>
             <Button type="submit" disabled={saving} className="bg-railway-navy hover:bg-railway-navy-light text-primary-foreground">
