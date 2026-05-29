@@ -48,6 +48,7 @@ export default function AdminManagement() {
   const [loading, setLoading] = useState(false);
   const [createdAccounts, setCreatedAccounts] = useState<CreatedAccount[]>([]);
   const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  const [revealedAdminPasswords, setRevealedAdminPasswords] = useState<Record<string, string>>({});
   const [csvFile, setCsvFile] = useState<File | null>(null);
 
   const fetchAdmins = async () => {
@@ -161,15 +162,25 @@ export default function AdminManagement() {
     fetchAdmins();
   };
 
-  const handleResetPassword = async (id: string, adminName: string, username: string | null) => {
-    const newPassword = generatePassword();
-    const { error } = await supabase.from("admin_assignments").update({ admin_password: newPassword }).eq("id", id);
+  const handleRevealPassword = async (id: string, adminName: string) => {
+    const { data, error } = await supabase
+      .from("admin_assignments")
+      .select("admin_password")
+      .eq("id", id)
+      .single();
+
     if (error) {
       toast.error(error.message);
       return;
     }
-    setCreatedAccounts(prev => [...prev, { name: adminName, username: username || "", cug: "", password: newPassword, kind: "admin" }]);
-    toast.success(`New password generated for ${adminName}`);
+
+    if (!data?.admin_password) {
+      toast.error(`No password is stored for ${adminName}`);
+      return;
+    }
+
+    setRevealedAdminPasswords(prev => ({ ...prev, [id]: data.admin_password }));
+    toast.success(`Password loaded for ${adminName}`);
   };
 
   const copyToClipboard = (text: string) => {
@@ -315,13 +326,21 @@ export default function AdminManagement() {
                   <TableCell>{admin.cug_number || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" title="Reset Password" onClick={() => handleResetPassword(admin.id, admin.admin_name, admin.admin_username)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" title="Show Stored Password" onClick={() => handleRevealPassword(admin.id, admin.admin_name)}>
                         <KeyRound className="w-4 h-4 text-railway-gold" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDelete(admin.id)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
+                    {revealedAdminPasswords[admin.id] && (
+                      <div className="mt-2 rounded-md border border-railway-gold/30 bg-railway-gold/5 px-2 py-1 text-left">
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Stored Password</p>
+                        <code className="break-all text-xs font-mono text-foreground">
+                          {revealedAdminPasswords[admin.id]}
+                        </code>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

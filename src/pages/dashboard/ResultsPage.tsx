@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Trophy } from "lucide-react";
-import { useState } from "react";
 
 export default function ResultsPage() {
   const [results, setResults] = useState<any[]>([]);

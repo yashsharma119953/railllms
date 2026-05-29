@@ -40,7 +40,7 @@ Pass: AcetiansTechnologies@2026
 
 
 ----------
-ADMIN | test-2 | Username: test-2 | Password: X73SxqQwZ9
+ADMIN | test-2 | Username: test-2 | Password: X73SxqQwZ9  
 USER | test_2_user-1 | Username: test_2_user-1 | Password: 5sv22tXNAW
 USER | test_2_user-2 | Username: test_2_user-2 | Password: UEAUWG9fSW
 USER | test_2_user-3 | Username: test_2_user-3 | Password: vVjAT9AXMP
@@ -61,3 +61,30 @@ USER | test_2_user-17 | Username: test_2_user-17 | Password: bFMgeQw56T
 USER | test_2_user-18 | Username: test_2_user-18 | Password: bZYu8eY52X
 USER | test_2_user-19 | Username: test_2_user-19 | Password: KhLpsDNc7c
 USER | test_2_user-20 | Username: test_2_user-20 | Password: cEDzYZfNGf
+
+
+
+
+------------------
+
+ADMIN | test-3 | Username: test-3 | Password: TzwyRVJjdT |  s4WH2HMNrj | pPMNQuzvNX
+USER | test_3_user-1 | Username: test_3_user-1 | Password: ZRuAPJ4prq
+USER | test_3_user-2 | Username: test_3_user-2 | Password: yDe5CBjPjp
+USER | test_3_user-3 | Username: test_3_user-3 | Password: xYBDxWCbUn
+USER | test_3_user-4 | Username: test_3_user-4 | Password: JcxzsWPmjH
+USER | test_3_user-5 | Username: test_3_user-5 | Password: BWKDqG4NJR
+USER | test_3_user-6 | Username: test_3_user-6 | Password: yq3xqnZQZe
+USER | test_3_user-7 | Username: test_3_user-7 | Password: B4u3M9vHk2
+USER | test_3_user-8 | Username: test_3_user-8 | Password: PKLAwbCzsH
+USER | test_3_user-9 | Username: test_3_user-9 | Password: GUr4SFGdKy
+USER | test_3_user-10 | Username: test_3_user-10 | Password: nnDJ79Quj3
+USER | test_3_user-11 | Username: test_3_user-11 | Password: KG47ShQVxm
+USER | test_3_user-12 | Username: test_3_user-12 | Password: fqeQedvDTx
+USER | test_3_user-13 | Username: test_3_user-13 | Password: Ab7YWmPMaJ
+USER | test_3_user-14 | Username: test_3_user-14 | Password: Yzd8h4ZTZL
+USER | test_3_user-15 | Username: test_3_user-15 | Password: GkKXREZnqH
+USER | test_3_user-16 | Username: test_3_user-16 | Password: zNKqhPgezV
+USER | test_3_user-17 | Username: test_3_user-17 | Password: tBwmNe7mcm
+USER | test_3_user-18 | Username: test_3_user-18 | Password: bhEzuHrwj4
+USER | test_3_user-19 | Username: test_3_user-19 | Password: hkcMYzxezX
+USER | test_3_user-20 | Username: test_3_user-20 | Password: wX7C5XMbnr
