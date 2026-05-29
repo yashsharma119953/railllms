@@ -19,6 +19,16 @@ interface DashboardSubPageProps {
 }
 
 export default function DashboardSubPage({ page }: DashboardSubPageProps) {
+  const { user, role, isHydrated } = useAuth();
+
+  if (!isHydrated) {
+    return null;
+  }
+
+  if (!user || !role) {
+    return <Navigate to="/login" replace />;
+  }
+
   const pageMap: Record<string, ReactNode> = {
     admins: <AdminManagement />,
     users: <UserManagement />,

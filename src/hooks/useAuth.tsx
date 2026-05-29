@@ -22,6 +22,7 @@ interface AuthState {
 
 interface AuthContextType extends AuthState {
   loading: boolean;
+  isHydrated: boolean;
   signIn: (role: AppRole | null, username: string, password: string) => Promise<{ error: any } | { error: null }>;
   signOut: () => Promise<void>;
   setDemoRole: (role: AppRole) => void;
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const session = readSession();
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRole(session.role);
       setProfile(session.profile);
     }
+    setIsHydrated(true);
   }, []);
 
   const persistState = (nextState: AuthState) => {
@@ -195,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     role,
     profile,
     loading,
+    isHydrated,
     signIn,
     signOut,
     setDemoRole: (r: AppRole) => setRole(r),
